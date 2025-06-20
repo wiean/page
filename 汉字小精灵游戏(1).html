@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉字小精灵 ✏️ - 小学语文趣味学习</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', '楷体', sans-serif;
+            text-align: center;
+            background-color: #fff9e6;
+            padding: 20px;
+            background-image: url('https://img.freepik.com/free-vector/hand-drawn-school-background_23-2149464866.jpg');
+            background-size: cover;
+            margin: 0;
+        }
+        .game-container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(255, 182, 193, 0.6);
+            border: 3px solid #ffb6c1;
+            position: relative;
+            overflow: hidden;
+        }
+        h1 {
+            color: #ff6b88;
+            text-shadow: 2px 2px 0px #fff, 4px 4px 0px rgba(255, 107, 136, 0.3);
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .score-container {
+            background-color: #fffacd;
+            padding: 10px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 15px;
+            border: 2px dashed #ffb347;
+        }
+        .score {
+            font-size: 24px;
+            color: #ff6b88;
+            font-weight: bold;
+        }
+        .prompt-container {
+            background-color: #e6f9ff;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 2px solid #89cff0;
+            box-shadow: inset 0 0 10px rgba(137, 207, 240, 0.3);
+        }
+        .pinyin {
+            color: #ff8c69;
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
+        }
+        .hint-image {
+            width: 120px;
+            height: 120px;
+            margin: 10px auto;
+            background-color: #fff;
+            border: 3px solid #ffb6c1;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .hint-image:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .drawing-area {
+            position: relative;
+            width: 100%;
+            margin: 20px 0;
+        }
+        .drawing-board {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            border: 4px solid #a2d5f2;
+            border-radius: 15px;
+            background-color: white;
+            touch-action: none;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            background-image: url('https://www.transparenttextures.com/patterns/notebook.png');
+        }
+        .pen-tools {
+            margin: 15px auto;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .pen-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .pen-color:hover {
+            transform: scale(1.2);
+        }
+        .controls {
+            margin: 25px 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        button {
+            background-color: #ff9e7d;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #e67a6f, 0 6px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        button:hover {
+            background-color: #ff8c69;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #e67a6f, 0 8px 12px rgba(0,0,0,0.15);
+        }
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #e67a6f, 0 3px 4px rgba(0,0,0,0.1);
+        }
+        button:disabled {
+            background-color: #cccccc;
+            box-shadow: 0 4px 0 #999999;
+            cursor: not-allowed;
+        }
+        button:after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+        button:focus:not(:active)::after {
+            animation: ripple 0.6s ease-out;
+        }
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20, 20);
+                opacity: 0;
+            }
+        }
+        .feedback {
+            min-height: 40px;
+            font-size: 24px;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .correct {
+            color: #2ecc71;
+            background-color: #e8f8f0;
+            border: 2px solid #2ecc71;
+            animation: bounce 0.5s;
+        }
+        .incorrect {
+            color: #e74c3c;
+            background-color: #fdedec;
+            border: 2px solid #e74c3c;
+            animation: shake 0.5s;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-20px);}
+            60% {transform: translateY(-10px);}
+        }
+        @keyframes shake {
+            0%, 100% {transform: translateX(0);}
+            10%, 30%, 50%, 70%, 90% {transform: translateX(-5px);}
+            20%, 40%, 60%, 80% {transform: translateX(5px);}
+        }
+        .character-display {
+            font-size: 80px;
+            color: #ff6b88;
+            margin: 10px 0;
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+        }
+        .mascot {
+            position: absolute;
+            width: 100px;
+            right: 20px;
+            top: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+            z-index: 2;
+        }
+        .mascot:hover {
+            transform: rotate(10deg) scale(1.1);
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            border-radius: 50%;
+            animation: fall 3s linear forwards;
+            pointer-events: none;
+        }
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <img src="https://img.icons8.com/color/96/000000/owl.png" class="mascot" alt="学习小精灵" title="加油哦！">
+        
+        <h1>汉字小精灵 ✏️</h1>
+        
+        <div class="score-container">
+            <span class="score">得分: <span id="score">0</span></span>
+        </div>
+        
+        <div class="prompt-container">
+            <div class="pinyin" id="pinyin-display">nǐ hǎo</div>
+            <div class="hint-image" id="hint-image">👋</div>
+        </div>
+        
+        <div class="drawing-area">
+            <canvas id="drawing-board" class="drawing-board"></canvas>
+            
+            <div class="pen-tools">
+                <div class="pen-color" style="background-color: #000000;" data-color="#000000"></div>
+                <div class="pen-color" style="background-color: #ff6b88;" data-color="#ff6b88"></div>
+                <div class="pen-color" style="background-color: #3498db;" data-color="#3498db"></div>
+                <div class="pen-color" style="background-color: #2ecc71;" data-color="#2ecc71"></div>
+                <div class="pen-color" style="background-color: #f39c12;" data-color="#f39c12"></div>
+            </div>
+        </div>
+        
+        <div class="feedback" id="feedback"></div>
+        
+        <div class="controls">
+            <button id="check-btn">✅ 检查答案</button>
+            <button id="clear-btn">🧹 清除</button>
+            <button id="hint-btn">💡 提示</button>
+            <button id="next-btn" style="display:none;">➡️ 下一个</button>
+        </div>
+    </div>
+
+    <!-- 音效 -->
+    <audio id="correct-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3" preload="auto"></audio>
+    <audio id="wrong-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3" preload="auto"></audio>
+    <audio id="draw-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-eraser-on-paper-2776.mp3" preload="auto"></audio>
+    <audio id="button-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-modern-click-box-check-1120.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
+
+    <script>
+        // 汉字数据
+        const wordList = [
+            { hanzi: "你好", pinyin: "nǐ hǎo", image: "👋", level: "一年级" },
+            { hanzi: "学校", pinyin: "xué xiào", image: "🏫", level: "一年级" },
+            { hanzi: "老师", pinyin: "lǎo shī", image: "👩‍🏫", level: "一年级" },
+            { hanzi: "学生", pinyin: "xué sheng", image: "🧑‍🎓", level: "一年级" },
+            { hanzi: "苹果", pinyin: "píng guǒ", image: "🍎", level: "二年级" },
+            { hanzi: "猫", pinyin: "māo", image: "🐱", level: "二年级" },
+            { hanzi: "太阳", pinyin: "tài yáng", image: "☀️", level: "二年级" },
+            { hanzi: "月亮", pinyin: "yuè liang", image: "🌙", level: "三年级" },
+            { hanzi: "朋友", pinyin: "péng you", image: "👫", level: "三年级" },
+            { hanzi: "快乐", pinyin: "kuài lè", image: "😊", level: "三年级" },
+            { hanzi: "水", pinyin: "shuǐ", image: "💧", level: "一年级" },
+            { hanzi: "火", pinyin: "huǒ", image: "🔥", level: "一年级" },
+            { hanzi: "木", pinyin: "mù", image: "🌲", level: "一年级" },
+            { hanzi: "日", pinyin: "rì", image: "☀️", level: "一年级" },
+            { hanzi: "月", pinyin: "yuè", image: "🌙", level: "一年级" }
+        ];
+
+        // 游戏变量
+        let currentWordIndex = 0;
+        let score = 0;
+        let isDrawing = false;
+        let canvas, ctx;
+        let lastX = 0, lastY = 0;
+        let touchId = null;
+        
+        // 音效
+        const sounds = {
+            correct: document.getElementById('correct-sound'),
+            wrong: document.getElementById('wrong-sound'),
+            draw: document.getElementById('draw-sound'),
+            button: document.getElementById('button-sound'),
+            win: document.getElementById('win-sound')
+        };
+        
+        // 初始化游戏
+        function initGame() {
+            canvas = document.getElementById('drawing-board');
+            ctx = canvas.getContext('2d');
+            
+            // 设置画布大小
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // 设置绘图样式
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.globalCompositeOperation = 'source-over';
+            
+            // 平滑绘制设置
+            ctx.imageSmoothingEnabled = true;
+            
+            // 加载第一个单词
+            loadWord(currentWordIndex);
+            
+            // 事件监听
+            setupEventListeners();
+        }
+        
+        // 调整画布大小
+        function resizeCanvas() {
+            const canvasContainer = canvas.parentElement;
+            const size = Math.min(canvasContainer.offsetWidth * 0.9, 400);
+            canvas.width = size;
+            canvas.height = size;
+            canvas.style.width = size + 'px';
+            canvas.style.height = size + 'px';
+            clearCanvas();
+        }
+        
+        // 播放音效
+        function playSound(sound) {
+            if (sounds[sound]) {
+                sounds[sound].currentTime = 0;
+                sounds[sound].play().catch(e => console.log("音效播放失败:", e));
+            }
+        }
+        
+        // 加载单词
+        function loadWord(index) {
+            const word = wordList[index];
+            document.getElementById('pinyin-display').textContent = word.pinyin;
+            document.getElementById('hint-image').textContent = word.image;
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = 'feedback';
+            document.getElementById('next-btn').style.display = 'none';
+            clearCanvas();
+            
+            // 小精灵动画
+            animateMascot();
+        }
+        
+        // 小精灵动画
+        function animateMascot() {
+            const mascot = document.querySelector('.mascot');
+            mascot.style.animation = 'none';
+            setTimeout(() => {
+                mascot.style.animation = 'bounce 0.5s 2';
+            }, 10);
+        }
+        
+        // 设置事件监听
+        function setupEventListeners() {
+            // 鼠标事件
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // 触摸事件 - 支持多点触控
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd);
+            canvas.addEventListener('touchcancel', handleTouchEnd);
+            
+            // 按钮事件
+            document.getElementById('check-btn').addEventListener('click', checkAnswer);
+            document.getElementById('clear-btn').addEventListener('click', clearCanvas);
+            document.getElementById('hint-btn').addEventListener('click', showHint);
+            document.getElementById('next-btn').addEventListener('click', nextWord);
+            
+            // 画笔颜色选择
+            document.querySelectorAll('.pen-color').forEach(color => {
+                color.addEventListener('click', function() {
+                    ctx.strokeStyle = this.getAttribute('data-color');
+                    playSound('button');
+                });
+            });
+            
+            // 小精灵点击事件
+            document.querySelector('.mascot').addEventListener('click', showEncouragement);
+        }
+        
+        // 显示鼓励语
+        function showEncouragement() {
+            const messages = [
+                "你真棒！", "继续加油！", "太厉害了！", 
+                "学得真快！", "小天才！", "汉字小达人！"
+            ];
+            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+            
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = randomMsg;
+            feedback.className = 'feedback correct';
+            playSound('button');
+            
+            setTimeout(() => {
+                feedback.className = 'feedback';
+            }, 1000);
+        }
+        
+        // 绘图函数 - 鼠标
+        function startDrawing(e) {
+            e.preventDefault();
+            isDrawing = true;
+            const pos = getMousePosition(canvas, e);
+            lastX = pos.x;
+            lastY = pos.y;
+            
+            // 开始新的路径
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(lastX, lastY);
+            ctx.stroke();
+            
+            playSound('draw');
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            
+            const pos = getMousePosition(canvas, e);
+            
+            // 使用贝塞尔曲线使线条更平滑
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.quadraticCurveTo(lastX, lastY, pos.x, pos.y);
+            ctx.stroke();
+            
+            lastX = pos.x;
+            lastY = pos.y;
+            
+            // 随机播放绘图音效
+            if (Math.random() < 0.3) {
+                playSound('draw');
+            }
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        // 绘图函数 - 触摸
+        function handleTouchStart(e) {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                const touch = e.touches[0];
+                touchId = touch.identifier;
+                isDrawing = true;
+                
+                const pos = getTouchPosition(canvas, touch);
+                lastX = pos.x;
+                lastY = pos.y;
+                
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(lastX, lastY);
+                ctx.stroke();
+                
+                playSound('draw');
+            }
+        }
+        
+        function handleTouchMove(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            
+            // 找到我们的触摸点
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                if (touch.identifier === touchId) {
+                    const pos = getTouchPosition(canvas, touch);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.quadraticCurveTo(lastX, lastY, pos.x, pos.y);
+                    ctx.stroke();
+                    
+                    lastX = pos.x;
+                    lastY = pos.y;
+                    
+                    if (Math.random() < 0.3) {
+                        playSound('draw');
+                    }
+                    break;
+                }
+            }
+        }
+        
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            isDrawing = false;
+            touchId = null;
+        }
+        
+        // 获取鼠标位置
+        function getMousePosition(canvas, evt) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+                y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+            };
+        }
+        
+        // 获取触摸位置
+        function getTouchPosition(canvas, touch) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (touch.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+                y: (touch.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+            };
+        }
+        
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            playSound('draw');
+        }
+        
+        // 游戏逻辑
+        function checkAnswer() {
+            playSound('button');
+            const currentWord = wordList[currentWordIndex].hanzi;
+            
+            // 简单判断：如果用户画了东西就算参与
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const isEmpty = !imageData.data.some(channel => channel !== 0);
+            
+            const feedback = document.getElementById('feedback');
+            
+            if (!isEmpty) {
+                // 模拟识别 - 实际应用中应该使用更复杂的识别算法
+                const isCorrect = Math.random() > 0.3; // 70%正确率模拟
+                
+                if (isCorrect) {
+                    score += 2;
+                    document.getElementById('score').textContent = score;
+                    feedback.className = 'feedback correct';
+                    feedback.innerHTML = `<span style="font-size:1.5em;">🎉 太棒了!</span><br>你写对了: ${currentWord}`;
+                    playSound('correct');
+                    createConfetti();
+                    
+                    // 每得10分播放胜利音效
+                    if (score % 10 === 0) {
+                        playSound('win');
+                    }
+                } else {
+                    feedback.className = 'feedback incorrect';
+                    feedback.innerHTML = `<span style="font-size:1.5em;">🤔 再试试!</span><br>正确答案是: ${currentWord}`;
+                    playSound('wrong');
+                }
+            } else {
+                feedback.className = 'feedback incorrect';
+                feedback.textContent = '请先写出汉字哦！';
+                playSound('wrong');
+            }
+            
+            document.getElementById('next-btn').style.display = 'inline-block';
+        }
+        
+        // 创建彩色纸屑效果
+        function createConfetti() {
+            const colors = ['#ff6b88', '#3498db', '#2ecc71', '#f39c12', '#9b59b6'];
+            const container = document.querySelector('.game-container');
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = -10 + 'px';
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = confetti.style.width;
+                confetti.style.animationDuration = Math.random() * 2 + 2 + 's';
+                container.appendChild(confetti);
+                
+                // 动画结束后移除
+                setTimeout(() => {
+                    confetti.remove();
+                }, 3000);
+            }
+        }
+        
+        function showHint() {
+            playSound('button');
+            const currentWord = wordList[currentWordIndex];
+            const feedback = document.getElementById('feedback');
+            feedback.className = 'feedback';
+            feedback.innerHTML = `💡 提示: 这个字与 <span style="font-size:1.2em;">${currentWord.image}</span> 有关`;
+            
+            // 小精灵动画
+            animateMascot();
+        }
+        
+        function nextWord() {
+            playSound('button');
+            currentWordIndex = (currentWordIndex + 1) % wordList.length;
+            loadWord(currentWordIndex);
+        }
+        
+        // 启动游戏
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
